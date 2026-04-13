@@ -7,6 +7,6 @@ export default class  Alumno
     }
     toString(){
     return `"Tu nombre es ${this.username}, tu DNI es ${this.dni}, y tu edad es ${this.edad} "`
-  }
-    
+    }
+
 }
