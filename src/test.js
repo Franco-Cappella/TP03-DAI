@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { multiplicar, PI, sumar, dividir, restar } from '../src/modules/matematica.js';
 import { OMDBSearchByPage, OMDBSearchComplete, OMDBGetByImdbID } from "./modules/omdb-wrapper.js"
+import {armarEnvelopeOMDB} from "./modules/envelope.js"
 
 const app = express()
 const port = 3000
@@ -18,12 +19,12 @@ app.get('/saludar/:nombre', (req, res) => {
 
 app.get('/validarfecha/:ano/:mes/:dia', (req, res) => {
     if (!isNaN(req.params.ano) && !isNaN(req.params.mes) && !isNaN(req.params.dia)) {
-
-        if (Date.parse(`"${req.params.ano}-${req.params.mes}-${req.params.dia}"`)) {
-            res.send(200)
+        let fechaConcatenada =`"${req.params.ano}-${req.params.mes}-${req.params.dia}"` 
+        if (!isNaN(Date.parse(fechaConcatenada))) {
+            res.status(200).send('Fecha válida')
         }
     }
-    else res.send(400)  
+    else res.status(400).send('Fecha inválida')
 
 })
 
@@ -47,10 +48,30 @@ app.get('/matematica/dividir', (req, res) =>{
     res.send(`Status 200 (OK) -- ${req.query.n1} / ${req.query.n2} = ${dividir(req.query.n1, req.query.n2)}`)
 })
 
-app.get('/omdb/searchbypage', (req, res) =>{
-    let objeto = OMDBSearchByPage(req.query.title, req.query.page)
-    res.send(`Status 200 (OK) -- ${objeto}`) /*aca hay un error, como mostramos?*/
+app.get('/omdb/searchbypage', async (req, res) =>{
+    try{
+    let data = await OMDBSearchByPage(req.query.title, req.query.page)
+    let objeto =  armarEnvelopeOMDB( data )
+    res.status(200).send(objeto) 
+
+    }catch(ex){
+        console.log(ex.message);
+        res.status(500).send({ respuesta: false, cantidadTotal: 0, datos: [] });
+    }
 })
+
+app.get('/omdb/searchcomplete', async (req, res) =>{
+    try{
+    let data = await OMDBSearchComplete(req.query.title)
+    let objeto =  armarEnvelopeOMDB( data )
+    res.status(200).send(objeto) 
+
+    }catch(ex){
+        console.log(ex.message);
+        res.status(500).send({ respuesta: false, cantidadTotal: 0, datos: [] });
+    }
+})
+
 app.listen(port, () => {
     console.log(`Listening on http://localhost:${port}`)
 })

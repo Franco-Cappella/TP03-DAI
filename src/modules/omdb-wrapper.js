@@ -1,6 +1,6 @@
 /* Módulo OMDBWrapper*/
 import axios from "axios";
-const APIKEY = "324e9101"; // MI APIKEY
+const APIKEY = "8340286a"; // MI APIKEY (TOTOSO)
 const BASE_URL = "http://www.omdbapi.com/?apikey=" + APIKEY
     
 const OMDBSearchByPage = async (searchText, page = 1) => {
