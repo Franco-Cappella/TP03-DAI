@@ -4,6 +4,7 @@ import { multiplicar, PI, sumar, dividir, restar } from '../src/modules/matemati
 import { OMDBSearchByPage, OMDBSearchComplete, OMDBGetByImdbID } from "./modules/omdb-wrapper.js"
 import { armarEnvelopeOMDB } from "./modules/envelope.js"
 import Alumno from "./models/alumno.js";
+import ValidacionesHelper from './modules/validaciones-helper.js'
 let alumnosArray = [];
 alumnosArray.push(new Alumno("Esteban Dido", "22888444", 20));
 alumnosArray.push(new Alumno("Matias Queroso", "28946255", 51));
@@ -19,45 +20,64 @@ app.get('/', (req, res) => {
 })
 
 app.get('/saludar/:nombre', (req, res) => {
-    res.send('Hola ' + req.params.nombre + ', espero que tengas un hermoso dia')
+    nombre = getStringOrDefault(req.params.nombre, 'Anonimo')
+    res.send('Hola ' + nombre + ', espero que tengas un hermoso dia')
 })
 
 app.get('/validarfecha/:ano/:mes/:dia', (req, res) => {
-    if (!isNaN(req.params.ano) && !isNaN(req.params.mes) && !isNaN(req.params.dia)) {
-        let fechaConcatenada = `"${req.params.ano}-${req.params.mes}-${req.params.dia}"`
-        if (!isNaN(Date.parse(fechaConcatenada))) {
-            res.status(200).send('Fecha válida')
-        }
-    }
-    else res.status(400).send('Fecha inválida')
-
+    let ano = getIntegerOrDefault(req.query.ano, 0)
+    let mes = getIntegerOrDefault(req.query.mes, 0)
+    let dia = getIntegerOrDefault(req.query.dia, 0)
+    if (ano == 0 || mes == 0 || dia == 0) {
+        res.status(400).send('Fecha inválida')
+    } else res.status(200).send('Fecha inválida')
 })
 
 app.get('/matematica/sumar', (req, res) => {
-
-    res.send(`Status 200 (OK) -- ${req.query.n1} + ${req.query.n2} = ${sumar(req.query.n1, req.query.n2)}`)
+    let n1 = getIntegerOrDefault(req.query.n1, 0)
+    let n2 = getIntegerOrDefault(req.query.n2, 0)
+    if (n1 != 0 && n2 != 0)
+        res.send(`Status 200 (OK) -- ${n1} + ${n2} = ${sumar(n1, n2)}`)
+    else res.send(`Status 400 (ERROR)`)
 })
 
 app.get('/matematica/multiplicar', (req, res) => {
-
-    res.send(`Status 200 (OK) -- ${req.query.n1} * ${req.query.n2} = ${multiplicar(req.query.n1, req.query.n2)}`)
+    let n1 = getIntegerOrDefault(req.query.n1, 0)
+    let n2 = getIntegerOrDefault(req.query.n2, 0)
+    if (n1 != 0 && n2 != 0)
+        res.send(`Status 200 (OK) -- ${n1} * ${n2} = ${multiplicar(n1, n2)}`)
+    else res.send(`Status 400 (ERROR)`)
 })
 
 app.get('/matematica/restar', (req, res) => {
+    let n1 = getIntegerOrDefault(req.query.n1, 0)
+    let n2 = getIntegerOrDefault(req.query.n2, 0)
+    if (n1 != 0 && n2 != 0)
+        res.send(`Status 200 (OK) -- ${n1} - ${n2} = ${restar(n1, n2)}`)
+    else res.send(`Status 400 (ERROR)`)
 
-    res.send(`Status 200 (OK) -- ${req.query.n1} - ${req.query.n2} = ${restar(req.query.n1, req.query.n2)}`)
 })
 
 app.get('/matematica/dividir', (req, res) => {
+    let n1 = getIntegerOrDefault(req.query.n1, 0)
+    let n2 = getIntegerOrDefault(req.query.n2, 0)
+    if (n1 != 0 && n2 != 0)
+        res.send(`Status 200 (OK) -- ${n1} / ${n2} = ${dividir(n1, n2)}`)
+    else res.send(`Status 400 (ERROR)`)
 
-    res.send(`Status 200 (OK) -- ${req.query.n1} / ${req.query.n2} = ${dividir(req.query.n1, req.query.n2)}`)
 })
 
 app.get('/omdb/searchbypage', async (req, res) => {
     try {
-        let data = await OMDBSearchByPage(req.query.title, req.query.page)
-        let objeto = armarEnvelopeOMDB(data)
-        res.status(200).send(objeto)
+
+        let titulo = getStringOrDefault(req.query.title)
+        let pagina = getIntegerOrDefault(req.query.page)
+        if (titulo != '' && pagina != '') {
+            let data = await OMDBSearchByPage(req.query.title, req.query.page)
+            let objeto = armarEnvelopeOMDB(data)
+            res.status(200).send(objeto)
+        } else if (titulo == '') { res.status(400).send("Debes ingresar un Titulo!") }
+        else  res.status(400).send("Debes ingresar una pagina!") 
 
     } catch (ex) {
         console.log(ex.message);
@@ -67,9 +87,12 @@ app.get('/omdb/searchbypage', async (req, res) => {
 
 app.get('/omdb/searchcomplete', async (req, res) => {
     try {
-        let data = await OMDBSearchComplete(req.query.title)
-        let objeto = armarEnvelopeOMDB(data)
-        res.status(200).send(objeto)
+        let titulo = getStringOrDefault(req.query.title)
+        if (titulo != '') {
+            let data = await OMDBSearchComplete(req.query.title)
+            let objeto = armarEnvelopeOMDB(data)
+            res.status(200).send(objeto)
+        } else res.status(400).send("Debes ingresar un titulo!")
 
     } catch (ex) {
         console.log(ex.message);
@@ -125,3 +148,4 @@ app.delete('/alumnos/', (req, res) => {
 app.listen(port, () => {
     console.log(`Listening on http://localhost:${port}`)
 })
+
