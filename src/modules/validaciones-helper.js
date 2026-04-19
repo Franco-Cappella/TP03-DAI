@@ -1,4 +1,4 @@
-
+class ValidacionesHelper {
 getIntegerOrDefault = (value, defaultValue) => {
     let valorParseado = parseInt(value)
     if (isNaN(valorParseado)) {
@@ -32,4 +32,5 @@ isEmail = (value) =>{
         return emailRegex.test(value)
     }
 }
-export { getIntegerOrDefault, getStringOrDefault, getDateOrDefault, getBoolOrDefault, isEmail }
+}
+export default new ValidacionesHelper()
