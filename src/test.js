@@ -4,7 +4,7 @@ import { multiplicar, PI, sumar, dividir, restar } from '../src/modules/matemati
 import { OMDBSearchByPage, OMDBSearchComplete, OMDBGetByImdbID } from "./modules/omdb-wrapper.js"
 import { armarEnvelopeOMDB } from "./modules/envelope.js"
 import Alumno from "./models/alumno.js";
-import ValidacionesHelper from './modules/validaciones-helper.js'
+import {getIntegerOrDefault, getStringOrDefault, getDateOrDefault, getBoolOrDefault, isEmail } from './modules/validaciones-helper.js'
 let alumnosArray = [];
 alumnosArray.push(new Alumno("Esteban Dido", "22888444", 20));
 alumnosArray.push(new Alumno("Matias Queroso", "28946255", 51));
@@ -34,34 +34,34 @@ app.get('/validarfecha/:ano/:mes/:dia', (req, res) => {
 })
 
 app.get('/matematica/sumar', (req, res) => {
-    let n1 = getIntegerOrDefault(req.query.n1, 0)
-    let n2 = getIntegerOrDefault(req.query.n2, 0)
-    if (n1 != 0 && n2 != 0)
+    let n1 = getIntegerOrDefault(req.query.n1, null)
+    let n2 = getIntegerOrDefault(req.query.n2, null)
+    if (n1 != null && n2 != null)
         res.send(`Status 200 (OK) -- ${n1} + ${n2} = ${sumar(n1, n2)}`)
     else res.send(`Status 400 (ERROR)`)
 })
 
 app.get('/matematica/multiplicar', (req, res) => {
-    let n1 = getIntegerOrDefault(req.query.n1, 0)
-    let n2 = getIntegerOrDefault(req.query.n2, 0)
-    if (n1 != 0 && n2 != 0)
-        res.send(`Status 200 (OK) -- ${n1} * ${n2} = ${multiplicar(n1, n2)}`)
-    else res.send(`Status 400 (ERROR)`)
+    let n1 = getIntegerOrDefault(req.query.n1, null)
+    let n2 = getIntegerOrDefault(req.query.n2, null)
+    if (n1 != null && n2 != null)
+        res.status(200).send(`Status 200 (OK) -- ${n1} * ${n2} = ${multiplicar(n1, n2)}`)
+    else res.status(400).send(`Status 400 (ERROR)`)
 })
 
 app.get('/matematica/restar', (req, res) => {
-    let n1 = getIntegerOrDefault(req.query.n1, 0)
-    let n2 = getIntegerOrDefault(req.query.n2, 0)
-    if (n1 != 0 && n2 != 0)
+    let n1 = getIntegerOrDefault(req.query.n1, null)
+    let n2 = getIntegerOrDefault(req.query.n2, null)
+    if (n1 != null && n2 != null)
         res.send(`Status 200 (OK) -- ${n1} - ${n2} = ${restar(n1, n2)}`)
     else res.send(`Status 400 (ERROR)`)
 
 })
 
 app.get('/matematica/dividir', (req, res) => {
-    let n1 = getIntegerOrDefault(req.query.n1, 0)
-    let n2 = getIntegerOrDefault(req.query.n2, 0)
-    if (n1 != 0 && n2 != 0)
+    let n1 = getIntegerOrDefault(req.query.n1, null)
+    let n2 = getIntegerOrDefault(req.query.n2, null)
+    if (n1 != null && n2 != null)
         res.send(`Status 200 (OK) -- ${n1} / ${n2} = ${dividir(n1, n2)}`)
     else res.send(`Status 400 (ERROR)`)
 
@@ -70,9 +70,9 @@ app.get('/matematica/dividir', (req, res) => {
 app.get('/omdb/searchbypage', async (req, res) => {
     try {
 
-        let titulo = getStringOrDefault(req.query.title)
-        let pagina = getIntegerOrDefault(req.query.page)
-        if (titulo != '' && pagina != '') {
+        let titulo = getStringOrDefault(req.query.title, '')
+        let pagina = getIntegerOrDefault(req.query.page, 0)
+        if (titulo != '' && pagina != 0) {
             let data = await OMDBSearchByPage(req.query.title, req.query.page)
             let objeto = armarEnvelopeOMDB(data)
             res.status(200).send(objeto)
@@ -87,7 +87,7 @@ app.get('/omdb/searchbypage', async (req, res) => {
 
 app.get('/omdb/searchcomplete', async (req, res) => {
     try {
-        let titulo = getStringOrDefault(req.query.title)
+        let titulo = getStringOrDefault(req.query.title, '')
         if (titulo != '') {
             let data = await OMDBSearchComplete(req.query.title)
             let objeto = armarEnvelopeOMDB(data)
@@ -102,9 +102,12 @@ app.get('/omdb/searchcomplete', async (req, res) => {
 
 app.get('/omdb/getbyimdbid', async (req, res) => {
     try {
-        let data = await OMDBGetByImdbID(req.query.id)
+        let id = getStringOrDefault(req.query.id, '')
+        if (id != '') { 
+            let data = await OMDBGetByImdbID(id)
         let objeto = armarEnvelopeOMDB(data)
         res.status(200).send(objeto)
+        }else res.status(400).send("Debes ingresar un ID!")
 
     } catch (ex) {
         console.log(ex.message);
@@ -113,31 +116,55 @@ app.get('/omdb/getbyimdbid', async (req, res) => {
 })
 
 app.get('/alumnos', (req, res) => {
-    // EndPoint "/", verbo GET
+
     res.status(200).send(alumnosArray);
 })
 
 app.get('/alumnos/:dni', (req, res) => {
-
-    const alumno = alumnosArray.find(item => item.dni === req.params.dni);
-    res.status(200).send(alumno);
+    let DNI = getStringOrDefault(req.params.dni, '')
+    if(DNI == ''){
+        res.status(400).send('Debes ingresar un DNI!')
+    } else{
+        const alumno = alumnosArray.find(item => item.dni === DNI);
+        if(alumno == null){
+            res.status(404).send('No se encontro el alumno')
+        }else res.status(200).send(alumno)
+    }
 })
 
 app.post('/alumnos/', (req, res) => {
-
-    let alumnito = new Alumno(req.query.nombre, req.query.dni, req.query.edad)
-    alumnosArray.push(alumnito)
-    res.status(201).send('Se añadio el alumno');
-})
+    let nombre = getStringOrDefault(req.query.nombre, '')
+    let dni = getStringOrDefault(req.query.dni, '')
+    let edad = getIntegerOrDefault(req.query.edad, 0)
+    if(nombre == '' || dni == '' || edad == 0){
+        res.status(400).send('Debes ingresar un nombre, un DNI y una edad!')
+        return
+    }else{
+        let yaExiste = alumnosArray.find(item => item.dni === dni);
+        if(yaExiste != undefined){
+            res.status(400).send('Ya existe un alumno con ese DNI!')
+            return
+        }else{
+            let alumnito = new Alumno(nombre, dni, edad)
+            alumnosArray.push(alumnito)
+            res.status(201).send('Se añadio el alumno');
+        }
+}
 
 app.delete('/alumnos/', (req, res) => {
 
     try {
+        let DNI = getStringOrDefault(req.params.dni, '')
+        if(DNI == ''){
+            res.status(400).send('Debes ingresar un DNI!')
+            return
+        }else{
 
         let indexfeo = alumnosArray.findIndex(item => item.dni === req.params.dni);
         alumnosArray.splice(indexfeo, 1)
         res.status(200).send('Se borro el alumno');
 
+        }
     }
     catch (ex) {
         console.log(ex.message);
@@ -148,4 +175,4 @@ app.delete('/alumnos/', (req, res) => {
 app.listen(port, () => {
     console.log(`Listening on http://localhost:${port}`)
 })
-
+})

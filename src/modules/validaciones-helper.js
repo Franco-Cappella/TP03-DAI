@@ -32,3 +32,4 @@ function isEmail(value) {
         return emailRegex.test(value)
     }
 }
+export { getIntegerOrDefault, getStringOrDefault, getDateOrDefault, getBoolOrDefault, isEmail }
