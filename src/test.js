@@ -61,7 +61,7 @@ app.get('/matematica/restar', (req, res) => {
 app.get('/matematica/dividir', (req, res) => {
     let n1 = getIntegerOrDefault(req.query.n1, null)
     let n2 = getIntegerOrDefault(req.query.n2, null)
-    if (n1 != null && n2 != null)
+    if (n1 != null && n2 != null && n2 != 0)
         res.send(`Status 200 (OK) -- ${n1} / ${n2} = ${dividir(n1, n2)}`)
     else res.send(`Status 400 (ERROR)`)
 
