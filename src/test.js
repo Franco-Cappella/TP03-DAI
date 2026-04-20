@@ -31,7 +31,7 @@ app.get('/validarfecha/:ano/:mes/:dia', (req, res) => {
     let ano = ValidacionesHelper.getIntegerOrDefault(req.query.ano, 0)
     let mes = ValidacionesHelper.getIntegerOrDefault(req.query.mes, 0)
     let dia = ValidacionesHelper.getIntegerOrDefault(req.query.dia, 0)
-    if (ano == 0 || mes == 0 || dia == 0) 
+    if (ano == 0 || mes == 0 || dia == 0)
         res.status(400).send('Fecha inválida')
     else res.status(200).send('Fecha inválida')
 })
@@ -82,7 +82,7 @@ app.get('/omdb/searchbypage', async (req, res) => {
             res.status(200).send(objeto)
 
         } else if (titulo == '') { res.status(400).send("Debes ingresar un Titulo!") }
-        else  res.status(400).send("Debes ingresar una pagina!") 
+        else res.status(400).send("Debes ingresar una pagina!")
 
     } catch (ex) {
 
@@ -115,13 +115,13 @@ app.get('/omdb/getbyimdbid', async (req, res) => {
     try {
 
         let id = ValidacionesHelper.getStringOrDefault(req.query.id, '')
-        if (id != '') { 
+        if (id != '') {
 
             let data = await OMDBGetByImdbID(id)
             let objeto = armarEnvelopeOMDB(data)
             res.status(200).send(objeto)
 
-        }else res.status(400).send("Debes ingresar un ID!")
+        } else res.status(400).send("Debes ingresar un ID!")
 
     } catch (ex) {
 
@@ -138,54 +138,32 @@ app.get('/alumnos', (req, res) => {
 
 app.get('/alumnos/:dni', (req, res) => {
     let DNI = ValidacionesHelper.getStringOrDefault(req.params.dni, '')
-    if(DNI == ''){
+    if (DNI == '') {
 
         res.status(400).send('Debes ingresar un DNI!')
 
-    } else{
+    } else {
 
         const alumno = alumnosArray.find(item => item.dni === DNI);
-        if(alumno == null){
+        if (alumno == null) {
             res.status(404).send('No se encontro el alumno')
-        }else res.status(200).send(alumno)
+        } else res.status(200).send(alumno)
 
     }
 })
 
-app.post('/alumnos/', (req, res) => {
-    let nombre = ValidacionesHelper.getStringOrDefault(req.query.nombre, '')
-    let dni = ValidacionesHelper.getStringOrDefault(req.query.dni, '')
-    let edad = ValidacionesHelper.getIntegerOrDefault(req.query.edad, 0)
-    if(nombre == '' || dni == '' || edad == 0){
-
-        res.status(400).send('Debes ingresar un nombre, un DNI y una edad!')
-
-    }else{
-        let yaExiste = alumnosArray.find(item => item.dni === dni);
-        if(yaExiste != undefined){
-
-            res.status(400).send('Ya existe un alumno con ese DNI!')
-
-        }else{
-
-            let alumnito = new Alumno(nombre, dni, edad)
-            alumnosArray.push(alumnito)
-            res.status(201).send('Se añadio el alumno');
-
-        }
-}
 
 app.delete('/alumnos/', (req, res) => {
 
     try {
         let DNI = ValidacionesHelper.getStringOrDefault(req.params.dni, '')
-        if(DNI == ''){
+        if (DNI == '') {
             res.status(400).send('Debes ingresar un DNI!')
-            
-        }else{
-        let indexfeo = alumnosArray.findIndex(item => item.dni === DNI);
-        alumnosArray.splice(indexfeo, 1)
-        res.status(200).send('Se borro el alumno');
+
+        } else {
+            let indexfeo = alumnosArray.findIndex(item => item.dni === DNI);
+            alumnosArray.splice(indexfeo, 1)
+            res.status(200).send('Se borro el alumno');
         }
     }
     catch (ex) {
@@ -193,8 +171,101 @@ app.delete('/alumnos/', (req, res) => {
         res.status(404).send('No se encontro el alumno')
     }
 })
+app.post('/alumnos/', (req, res) => {
+    let nombre = ValidacionesHelper.getStringOrDefault(req.query.nombre, '')
+    let dni = ValidacionesHelper.getStringOrDefault(req.query.dni, '')
+    let edad = ValidacionesHelper.getIntegerOrDefault(req.query.edad, 0)
+    if (nombre == '' || dni == '' || edad == 0) {
+
+        res.status(400).send('Debes ingresar un nombre, un DNI y una edad!')
+
+    } else {
+        let yaExiste = alumnosArray.find(item => item.dni === dni);
+        if (yaExiste != undefined) {
+
+            res.status(400).send('Ya existe un alumno con ese DNI!')
+
+        } else {
+
+            let alumnito = new Alumno(nombre, dni, edad)
+            alumnosArray.push(alumnito)
+            res.status(201).send('Se añadio el alumno');
+
+        }
+    }
+});
+
+// ==========================================
+// ENDPOINTS DE FECHAS
+// ==========================================
+
+app.get('/fechas/isDate', (req, res) => {
+    let fechaQuery = ValidacionesHelper.getStringOrDefault(req.query.fecha, '');
+    let fechaObj = new Date(fechaQuery);
+
+    if (fechaQuery === '' || !DateTimeHelper.isDate(fechaObj)) {
+        return res.status(400).send('Fecha inválida');
+    }
+
+    res.status(200).json({ "valido": true });
+});
+
+app.get('/fechas/getEdadActual', (req, res) => {
+
+    let fechaQuery = ValidacionesHelper.getStringOrDefault(req.query.fechaNacimiento, '');
+    let fechaObj = new Date(fechaQuery);
+
+    if (fechaQuery === '' || !DateTimeHelper.isDate(fechaObj)) {
+        return res.status(400).send('Fecha inválida');
+    }
+
+    let edad = DateTimeHelper.getEdadActual(fechaObj);
+    res.status(200).send(edad);
+});
+
+
+
+app.get('/fechas/getDiasHastaMiCumple', (req, res) => {
+    let fechaQuery = ValidacionesHelper.getStringOrDefault(req.query.fechaNacimiento, '');
+    let fechaObj = new Date(fechaQuery);
+
+    if (fechaQuery === '' || !DateTimeHelper.isDate(fechaObj)) {
+        return res.status(400).send('Fecha inválida');
+    }
+
+    let diasRestantes = DateTimeHelper.getDiasHastaMiCumple(fechaObj);
+    res.status(200).send(diasRestantes);
+});
+
+app.get('/fechas/getDiaTexto', (req, res) => {
+    let fechaQuery = ValidacionesHelper.getStringOrDefault(req.query.fecha, '');
+    let fechaObj = new Date(fechaQuery);
+
+    if (fechaQuery === '' || !DateTimeHelper.isDate(fechaObj)) {
+        return res.status(400).send('Fecha inválida');
+    }
+
+    let abr = req.query.abr === 'true';
+    let dia = DateTimeHelper.getDiaTexto(fechaObj, abr);
+
+    res.status(200).send(dia);
+});
+
+app.get('/fechas/getMesTexto', (req, res) => {
+    let fechaQuery = ValidacionesHelper.getStringOrDefault(req.query.fecha, '');
+    let fechaObj = new Date(fechaQuery);
+
+    if (fechaQuery === '' || !DateTimeHelper.isDate(fechaObj)) {
+        return res.status(400).send('Fecha inválida');
+    }
+
+    let abr = req.query.abr === 'true';
+    let mes = DateTimeHelper.getMesTexto(fechaObj, abr);
+
+    res.status(200).send(mes);
+});
 
 app.listen(port, () => {
     console.log(`Listening on http://localhost:${port}`)
 })
-})
+

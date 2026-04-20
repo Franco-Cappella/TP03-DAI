@@ -1,7 +1,15 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "\"# TPexpress-Postman\"",
+  "homepage": "https://github.com/Franco-Cappella/TP03-DAI#readme",
+  "bugs": {
+    "url": "https://github.com/Franco-Cappella/TP03-DAI/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Franco-Cappella/TP03-DAI.git"
+  },
   "license": "ISC",
   "author": "",
   "type": "module",
@@ -13,5 +21,6 @@
     "axios": "^1.14.0",
     "cors": "^2.8.6",
     "express": "^5.2.1"
-  }
+  },
+  "devDependencies": {}
 }
